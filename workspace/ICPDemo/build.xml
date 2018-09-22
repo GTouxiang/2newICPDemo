@@ -1,0 +1,105 @@
+<project name="ICP Demo" default="build.war" basedir=".">
+
+	<property environment="env" />
+
+	<property file="${basedir}/bin/build.properties" />
+
+	<property name="workspace.dir" value="${basedir}"/>
+	<property name="project.dir" value="${workspace.dir}"/>
+	<property file="${project.dir}/build.properties" />
+	
+
+	<property name="build.dir" value="${workspace.dir}/target" />
+	<property name="compile.dir" value="${build.dir}/classes" />
+	<property name="compile.test.dir" value="${build.dir}/test-classes" />
+	<property name="dist.dir" value="${build.dir}/dist" />
+	<property name="web.dir" value="${project.dir}/WebContent" />
+	<property name="lib.dir" value="${project.dir}/lib" />
+
+
+	<!-- =================================================================== -->
+	<!-- Define the class path to compile the source codes                   -->
+	<!-- =================================================================== -->
+	<path id="compile.classpath">
+		<fileset dir="${project.dir}/lib" includes="**/*.jar" />		
+		<pathelement location="${build.dir}/classes" />
+		<pathelement location="${build.dir}/test-classes" />
+	</path>
+
+	<!-- =================================================================== -->
+	<!-- Init                                                                -->
+	<!-- =================================================================== -->
+	<target name="init" depends="clean">
+		<mkdir dir="${build.dir}" />
+		<mkdir dir="${dist.dir}" />
+		<mkdir dir="${compile.dir}" />
+		<mkdir dir="${compile.test.dir}" />
+		<mkdir dir="${report.tests}" />
+	</target>
+
+	<!-- =================================================================== -->
+	<!-- Compile the src                                                     -->
+	<!-- =================================================================== -->
+
+	<target name="compile.src" depends="init">		
+		<javac destdir="${compile.dir}" debug="true" deprecation="on"
+               includes="**/*.java" encoding="utf-8" optimize="on" >
+			<src path="${project.dir}/src" />
+			<classpath refid="compile.classpath" />
+		</javac>		
+	</target>
+	
+	<target name="build.war" depends="junit">
+		<echo message="${dist.dir}"/>		
+		<war warfile="${dist.dir}/${application.name}.war" webxml="${web.dir}/WEB-INF/web.xml">
+			<fileset dir="${web.dir}" />			
+			<webinf dir="${web.dir}/WEB-INF">	
+				<exclude name="classes/**" />
+				<exclude name="lib/**" />
+				<exclude name="web.xml" />
+			</webinf>
+			<lib file="${project.dir}/lib/*.jar"/>	
+			<!-- Include the compiled classes -->
+			<classes dir="${compile.dir}" />
+		</war>
+	</target>
+
+	
+	
+	<!-- =================================================================== -->
+	<!-- Clean                                                               -->
+	<!-- =================================================================== -->
+	<target name="clean" depends="">
+		<delete dir="${build.dir}" failonerror="false"/>
+		<delete dir="${dist.dir}" failonerror="false"/>
+		<delete dir="${compile.dir}" failonerror="false"/>
+		<delete dir="${compile.test.dir}" failonerror="false"/>
+		<delete dir="${report.tests}" failonerror="false"/>
+	</target>
+	
+	<target name="compile.test" depends="init">		
+		<javac destdir="${compile.test.dir}" debug="true" deprecation="on"
+               includes="**/*.java" encoding="utf-8" optimize="on" >
+			<src path="${project.dir}/test" />
+			<classpath refid="compile.classpath" />
+		</javac>		
+	</target>
+
+	<property name="report.tests" value="${compile.test.dir}/../test-reports" />
+    <target name="junit" depends="clean,compile.src,compile.test">                
+    	 <junit printsummary="true" fork="true">        
+             <formatter type="xml" usefile="true"/>        
+             
+              <classpath refid="compile.classpath"/>        
+             
+             <batchtest fork="on" todir="${report.tests}" haltonfailure="no">
+                 <fileset dir="${compile.test.dir}">
+                     <include name="**/*Test.class"/>
+                 </fileset>
+                <formatter type="plain" />
+                <formatter type="xml" />
+             </batchtest>            
+    	</junit>    
+    </target>
+
+</project>

@@ -1,0 +1,17 @@
+node{
+   stage('Preparation') {
+      echo 'Preparing...'
+	   git credentialsId: 'ouxiang-ssh', url: 'git@github.com:ouxwind/newICPdemo.git'
+   }
+
+   stage('Unit Test') {
+	 echo 'Unit Test...'
+     withAnt(installation: 'ant1.10.3') {
+          sh '''cd workspace/ICPDemo
+		  pwd
+          ant junit
+          '''
+     }
+     junit 'workspace/ICPDemo/target/test-reports/TEST-*.xml'
+ }
+}
